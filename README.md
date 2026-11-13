@@ -35,8 +35,8 @@ The notebook downloads the dataset automatically with `kagglehub`; no manual dow
 1. **Data Cleaning & Consolidation:**
    - Filter `order_status == 'delivered'` and drop orders missing delivery timestamps.
    - Filter coordinates outside Brazil; aggregate geographic coordinates using the median latitude and longitude per `geolocation_zip_code_prefix`.
+   - Trim delivery time to the 1st–99th percentile range (1.83 to 46.05 days). On the 94,540 orders immediately following trimming (before dropping coordinate missingness), delivery time has a mean of 12.16 days, median of 10.22 days, and standard deviation of 7.71 days.
    - Drop 465 orders with unresolvable coordinates.
-   - Trim delivery time to the 1st–99th percentile range (1.83 to 46.05 days).
    - Final dataset consists of **94,075 orders** across **50 features** (see detailed audit in `results/cleaning_table.csv`).
 2. **Train/Test Split:**
    - 80/20 random split (`random_state=42`): **75,260 train** orders and **18,815 test** orders.
@@ -60,7 +60,7 @@ The notebook downloads the dataset automatically with `kagglehub`; no manual dow
 | **Baseline (Mean by State)** | 5.062 | 6.855 | 0.207 | 38.1% | 61.0% |
 | **Linear Regression** | **4.651** | **6.349** | **0.320** | **42.4%** | **65.4%** |
 
-Linear Regression reduces MAE by **19.9%** (1.15 days) and RMSE by **17.5%** (1.35 days) relative to the global mean baseline. Training $R^2$ (0.326) and test $R^2$ (0.320) are closely aligned, showing no sign of overfitting.
+Linear Regression reduces MAE by **19.9%** (1.15 days) and RMSE by **17.5%** (1.35 days) relative to the global mean baseline. Test MAE (4.651 days) represents approximately 38.1% of the test set mean delivery time (12.21 days). Training $R^2$ (0.326) and test $R^2$ (0.320) are closely aligned, showing no sign of overfitting.
 
 ![Model Comparison](figures/05_model_comparison.png)
 
@@ -75,7 +75,7 @@ Linear Regression reduces MAE by **19.9%** (1.15 days) and RMSE by **17.5%** (1.
 
 - **Distance (`distance_km`):** Strongest positive continuous predictor (+0.29 days per 100 km, $b = 0.0029, p < 0.001$).
 - **Same-State Shipping (`same_state`):** Predicts an arrival approximately **2.66 days sooner** when all items in the order originate from the customer's state ($b = -2.66, p < 0.001$).
-- **Customer State (relative to Acre - AC):** Holding distance and same-state constant, orders to São Paulo (SP: -2.08 days) and Minas Gerais (MG: -1.60 days) arrive earlier than the remote reference state Acre (AC). In contrast, orders to Bahia (BA: +2.37 days), Alagoas (AL: +5.35 days), Amazonas (AM: +5.58 days), and Amapá (AP: +4.69 days) arrive later. *Note: States such as AM, AL, and AP have very few orders, so their coefficients are less reliable and serve primarily as descriptive reference.*
+- **Customer State (relative to Acre - AC):** Holding distance and same-state constant, orders to São Paulo (SP: -2.08 days) and Minas Gerais (MG: -1.60 days) arrive earlier than the remote reference state Acre (AC). In contrast, orders to Bahia (BA: +2.37 days), Alagoas (AL: +5.35 days), Amazonas (AM: +5.58 days), and Amapá (AP: +4.68 days) arrive later. *Note: States such as AM, AL, and AP have very few orders, so their coefficients are less reliable and serve primarily as descriptive reference.*
 - **Statistical Significance (Classical vs HC3):** Under classical OLS standard errors, 30 out of 51 parameters (50 features + intercept) are statistically significant at $p < 0.05$. Because the Breusch-Pagan test indicates severe heteroscedasticity ($LM = 3,668, p < 0.001$), HC3 robust standard errors were computed; 29 out of 51 parameters remain significant under HC3, with `total_price` losing significance ($p = 0.0237 \rightarrow p = 0.0528$).
 
 ![Top 15 Coefficients](figures/10_top15_coefficients.png)
