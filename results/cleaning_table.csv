@@ -1,0 +1,8 @@
+Step,Orders removed,Orders remaining
+Raw data (orders),0,99441
+"Drop duplicate rows, keep only delivered orders",2963,96478
+Drop delivered orders missing the actual delivery date,8,96470
+Drop orders with no items (order_items),0,96470
+Remove orders with delivery_days <= 0,0,96470
+Remove outliers outside the 1%-99% percentile range of y,1930,94540
+Drop orders missing distance (missing coordinates),465,94075
